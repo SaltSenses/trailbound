@@ -1,0 +1,17 @@
+package ca.trailbound.app;
+import android.content.*;
+import android.database.Cursor;
+import android.database.sqlite.*;
+import org.json.*;
+public final class TrackDb extends SQLiteOpenHelper {
+ public TrackDb(Context c){super(c,"tracks.db",null,1);setWriteAheadLoggingEnabled(true);}
+ public void onCreate(SQLiteDatabase d){d.execSQL("CREATE TABLE tracks(id TEXT PRIMARY KEY,name TEXT NOT NULL,started INTEGER NOT NULL,active INTEGER NOT NULL)");d.execSQL("CREATE TABLE points(track TEXT NOT NULL,seq INTEGER PRIMARY KEY AUTOINCREMENT,lat REAL NOT NULL,lon REAL NOT NULL,ele REAL,time INTEGER NOT NULL,accuracy REAL NOT NULL,gap INTEGER NOT NULL)");d.execSQL("CREATE INDEX track_points ON points(track,seq)");}
+ public void onUpgrade(SQLiteDatabase d,int a,int b){throw new IllegalStateException("Unsupported database migration");}
+ public synchronized String active(){try(Cursor c=getReadableDatabase().rawQuery("SELECT id FROM tracks WHERE active=1 LIMIT 1",null)){return c.moveToFirst()?c.getString(0):null;}}
+ public synchronized String start(String name){if(active()!=null)throw new IllegalStateException("A track is already active");String id=java.util.UUID.randomUUID().toString();ContentValues v=new ContentValues();v.put("id",id);v.put("name",name);v.put("started",System.currentTimeMillis());v.put("active",1);getWritableDatabase().insertOrThrow("tracks",null,v);return id;}
+ public synchronized void finish(){ContentValues v=new ContentValues();v.put("active",0);getWritableDatabase().update("tracks",v,"active=1",null);}
+ public synchronized long lastTime(String id){try(Cursor c=getReadableDatabase().rawQuery("SELECT time FROM points WHERE track=? ORDER BY seq DESC LIMIT 1",new String[]{id})){return c.moveToFirst()?c.getLong(0):0;}}
+ public synchronized void append(String id,android.location.Location p,boolean gap){ContentValues v=new ContentValues();v.put("track",id);v.put("lat",p.getLatitude());v.put("lon",p.getLongitude());if(p.hasAltitude())v.put("ele",p.getAltitude());v.put("time",p.getTime());v.put("accuracy",p.getAccuracy());v.put("gap",gap?1:0);getWritableDatabase().insertOrThrow("points",null,v);}
+ public synchronized String snapshot(){try{JSONObject result=new JSONObject();JSONArray list=new JSONArray();try(Cursor c=getReadableDatabase().rawQuery("SELECT id,name,started,active FROM tracks ORDER BY started DESC",null)){while(c.moveToNext()){JSONObject t=new JSONObject();String id=c.getString(0);t.put("id","native-"+id);t.put("name",c.getString(1));t.put("started",c.getLong(2));t.put("active",c.getInt(3)==1);t.put("kind","recording");t.put("created",new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",java.util.Locale.US){{setTimeZone(java.util.TimeZone.getTimeZone("UTC"));}}.format(new java.util.Date(c.getLong(2))));JSONArray points=new JSONArray();try(Cursor p=getReadableDatabase().rawQuery("SELECT lat,lon,ele,time,accuracy,gap FROM points WHERE track=? ORDER BY seq",new String[]{id})){while(p.moveToNext()){JSONObject point=new JSONObject();point.put("lat",p.getDouble(0));point.put("lon",p.getDouble(1));if(!p.isNull(2))point.put("ele",p.getDouble(2));point.put("time",p.getLong(3));point.put("accuracy",p.getDouble(4));if(p.getInt(5)==1)point.put("break",true);points.put(point);}}t.put("points",points);list.put(t);}}result.put("tracks",list);result.put("status",getStatus());return result.toString();}catch(JSONException e){throw new IllegalStateException(e);}}
+ private String getStatus(){return active()==null?"No native recording active":"Native recording active; see persistent notification";}
+}
