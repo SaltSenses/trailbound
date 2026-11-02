@@ -1,5 +1,13 @@
 # Trailbound
 
+## Version 0.3: live 2D and 3D maps
+
+Open Live map to explore a real streamed vector basemap with clustered Canadian trail markers, saved route lines, a highlighted selected route, location and fullscreen controls. Load a catalog route, choose View on 2D / 3D map, then toggle 3D terrain. Elevation comes from Mapterhorn and the basemap from OpenFreeMap; MapLibre GL JS 5.6.2 is loaded on demand from jsDelivr. These public endpoints need no API key but have no guaranteed availability. Online viewing sends map-area tile requests to those providers. The location control asks for browser permission. Terrain has 1.2× vertical exaggeration.
+
+The online basemap and 3D terrain are **not downloaded for offline use**. Offline route geometry and the existing saved collection remain available. WebGL-capable hardware is required for the live map. Marker positions are route centres, not trailheads. Routes in OpenStreetMap may be incomplete, closed, private or unsuitable. Map paths are not verified hiking recommendations.
+
+Provider documentation: https://openfreemap.org/quick_start/ and https://mapterhorn.com/data-access/ . Attribution remains visible on the map and links to elevation data sources.
+
 Live app: https://saltsenses.github.io/trailbound/
 
 ## Version 0.2 additions

@@ -1,5 +1,5 @@
-const CACHE='trailbound-v3';
-const ASSETS=['./','./index.html','./app.js','./core.js','./catalog.js','./data/canada.json','./style.css','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='trailbound-v6';
+const ASSETS=['./','./index.html','./app.js','./core.js','./catalog.js','./map-view.js','./data/canada.json','./style.css','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));});
 self.addEventListener('message',event=>{if(event.data?.type==='ACTIVATE_UPDATE')self.skipWaiting();});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('trailbound-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
