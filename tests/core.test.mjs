@@ -8,4 +8,4 @@ test('invalid GPS and malformed backups are rejected',()=>{for(const points of [
 test('filters use distance and ascent',()=>{assert.equal(rankRoutes([route],{maxKm:1,maxGain:100}).length,0);assert.equal(rankRoutes([route],{maxKm:5,maxGain:40}).length,0);assert.equal(rankRoutes([route],{maxKm:5,maxGain:100}).length,1);});
 test('trip estimate includes ascent and breaks and flags time overruns',()=>{const p=tripPlan(route,{pace:4,hours:.1});assert.ok(p.total>p.moving);assert.equal(p.withinBudget,false);assert.ok(p.water>0);});
 test('GPX exports escaped names and separate segments',()=>{const xml=toGPX({...route,points:[route.points[0],{...route.points[1],break:true}]});assert.ok(xml.includes('Ridge &amp; river'));assert.equal(xml.match(/<trkseg>/g).length,2);});
-test('routes without elevations do not invent ascent',()=>{assert.equal(stats([{lat:0,lon:0},{lat:1,lon:0}]).gain,0);});
+test('routes without elevations do not invent ascent',()=>{assert.equal(stats([{lat:0,lon:0},{lat:1,lon:0}]).gain,null);});

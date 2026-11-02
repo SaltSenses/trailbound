@@ -135,3 +135,9 @@ Prioritized next releases:
 
 External accounts needed: GitHub for source and Pages. Optional: domain registrar for a custom URL; AI provider only if cloud AI is added; Google Play developer account only if distributing a native APK through Play. No API keys are needed for this release.
 
+
+## Release 0.6: map-first discovery
+
+The app opens on the live map. Filter the viewed-area trail list by geometry distance, distance/time baseline, bundled availability or private favorites, and sort by centre proximity, length or name. Favorites persist in IndexedDB and are included in backups. Hide the results panel for more map space. Trail details show geometry length, elevation coverage, source context and an elevation profile only when actual samples exist. Missing or incomplete elevation stays unknown, is excluded by low-ascent filters and cannot produce a confident time-budget verdict. Distance-only times omit unknown climbing and are not complete hiking-time predictions.
+
+Comparison and validation: 27 automated tests plus syntax checks; Chrome checks for combined filters, favorites after reload, direct pack route loading, missing-elevation details, panel hiding, 390px responsive bounds and cached reload with the local server stopped. No native Android field tracking, full offline basemap or complete national trail coverage is claimed.
