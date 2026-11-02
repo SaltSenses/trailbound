@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {distance,stats,validateRoute,rankRoutes,tripPlan,toGPX} from '../public/core.js';
+const route={id:'r',name:'Ridge & river',points:[{lat:0,lon:0,ele:100},{lat:0,lon:.01,ele:150},{lat:0,lon:.02,ele:130}]};
+test('haversine distance uses meters and remains finite at antipodes',()=>{assert.ok(Math.abs(distance({lat:0,lon:0},{lat:0,lon:1})-111195)<2);assert.ok(Number.isFinite(distance({lat:0,lon:0},{lat:0,lon:180})));});
+test('route statistics count ascent only and exclude segment gaps',()=>{assert.equal(stats(route.points).gain,50);assert.ok(stats(route.points).km>2.22);assert.equal(stats([route.points[0],{...route.points[1],break:true}]).km,0);});
+test('invalid GPS and malformed backups are rejected',()=>{for(const points of [[{lat:91,lon:0},{lat:0,lon:0}],[{lat:NaN,lon:0},{lat:0,lon:0}],[]])assert.throws(()=>validateRoute({...route,points}));assert.equal(validateRoute(route).kind,'route');});
+test('filters use distance and ascent',()=>{assert.equal(rankRoutes([route],{maxKm:1,maxGain:100}).length,0);assert.equal(rankRoutes([route],{maxKm:5,maxGain:40}).length,0);assert.equal(rankRoutes([route],{maxKm:5,maxGain:100}).length,1);});
+test('trip estimate includes ascent and breaks and flags time overruns',()=>{const p=tripPlan(route,{pace:4,hours:.1});assert.ok(p.total>p.moving);assert.equal(p.withinBudget,false);assert.ok(p.water>0);});
+test('GPX exports escaped names and separate segments',()=>{const xml=toGPX({...route,points:[route.points[0],{...route.points[1],break:true}]});assert.ok(xml.includes('Ridge &amp; river'));assert.equal(xml.match(/<trkseg>/g).length,2);});
+test('routes without elevations do not invent ascent',()=>{assert.equal(stats([{lat:0,lon:0},{lat:1,lon:0}]).gain,0);});
