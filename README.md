@@ -35,7 +35,7 @@ Open http://localhost:4387 in Chrome or Edge. Keep the terminal open while servi
 
 ## Important limits of version 0.1
 
-This is a useful personal MVP, not a completed AllTrails replacement. It has no public trail catalog, terrain/basemap downloads, automatic route generation, verified trail conditions, cloud sync, live weather, offline mobile AI model, turn-by-turn directions, emergency dispatch or reliable background recording. The sample route is fictional and is explicitly labeled. Discovery currently means filtering your imported routes.
+This is a useful personal MVP, not a completed AllTrails replacement. Its initial Canadian OSM catalog is incomplete. It has no terrain/basemap downloads, automatic route generation, verified trail conditions, cloud sync, live weather, offline mobile AI model, turn-by-turn directions, emergency dispatch or reliable background recording. The sample route is fictional and is explicitly labeled. Discovery now includes the bundled mapped Canadian route index and filtering your saved routes.
 
 Routes show north-up geometry, not geographic context. Missing elevation produces zero **recorded** ascent; that does not mean a trail is flat. Estimates do not assess trail safety. Do not rely on a browser recording while the phone is locked. A native Android foreground location service is the next implementation step for reliable background tracking.
 
