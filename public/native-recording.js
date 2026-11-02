@@ -1,0 +1,2 @@
+import {validateRoute} from './core.js';
+export function normalizeBackup(data){if(data?.format!=='trailbound-native')return data;if(data.version!==1||!Array.isArray(data.tracks)||data.tracks.length>10000)throw Error('Invalid native track backup.');for(const t of data.tracks)if(!Array.isArray(t.points))throw Error('Invalid native track points.');return {format:'trailbound',version:1,routes:data.tracks.filter(t=>t.points.length>=2).map(validateRoute),plans:[]};}

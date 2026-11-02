@@ -1,6 +1,12 @@
 # Trailbound
 
-## Version 0.5: destinations, map discovery and terrain-aware drafts
+## Version 0.7: regional offline maps, expanded paths and Android recorder
+
+Live map → Offline maps & expanded local trails downloads a bounded OSM vector region, or one of the ready-made Canadian packs, into IndexedDB. Each region adds real named path segments to discovery and can be exported/imported independently. The map renderer is bundled locally; the regional 2D basemap has roads, paths, streams, standalone water/land-cover polygons and buildings. It needs no streamed tiles, glyph fonts or sprites. Major multipolygons, terrain contours and offline 3D relief are not included. Tap mapped features to read their names. Offline mode and the last map view persist.
+
+The `android/` project packages the app assets and implements a location foreground service, ongoing notification and SQLite recording independent of WebView visibility. See `android/README.md` for builds, signing, installation, backups and phone validation. A PWA installation cannot provide this service.
+
+## Earlier version 0.5 features
 
 The supplied Alberta CSV and KML were reconciled field by field. All **114** entries are included in `public/data/destinations.json`: **13 sourced coordinate pins** and **101 search/research entries without coordinates**. Access restrictions, coordinate confidence, approach references and overnight notes are retained. The claims in those files have not been independently reverified. Missing coordinates and missing source URLs remain missing. No place is given an invented pin. Built-in records are cached with the offline shell.
 

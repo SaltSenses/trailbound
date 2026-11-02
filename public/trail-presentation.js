@@ -1,5 +1,5 @@
 import {distance,stats} from './core.js';
-export const trailKey=id=>typeof id==='number'?`osm-relation-${id}`:String(id);
+export const trailKey=id=>typeof id==='number'?(id<0?`osm-way-${-id}`:`osm-relation-${id}`):String(id);
 export function durationLabel(hours){if(!Number.isFinite(hours))return 'Time unknown';const minutes=Math.max(1,Math.ceil(hours*60/5)*5);return minutes<60?`${minutes} min`:`${Math.floor(minutes/60)} hr${minutes%60?` ${minutes%60} min`:''}`;}
 export function routeSummary(points){const s=stats(points);return {...s,baselineHours:s.km/4*1.2+(s.gain??0)/600*1.2,ascentLabel:s.gain===null?'Ascent unknown':`${s.gain} m ascent`,distanceOnly:!s.elevationComplete};}
 export function filterTrails(items,{query='',maxKm=Infinity,maxHours=Infinity,availability='all',favorites=new Set(),order='near',center=null}={}){

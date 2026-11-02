@@ -5,6 +5,12 @@ android {
  defaultConfig { applicationId 'ca.trailbound.app'; minSdk 26; targetSdk 36; versionCode 7; versionName '0.7.0'; testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
  sourceSets { main { assets.srcDirs = ['../../public'] } }
- buildTypes { release { minifyEnabled false } }
+ signingConfigs {
+  release {
+   def keyPath = System.getenv('TRAILBOUND_KEYSTORE')
+   if (keyPath) { storeFile file(keyPath); storePassword System.getenv('TRAILBOUND_STORE_PASSWORD'); keyAlias System.getenv('TRAILBOUND_KEY_ALIAS'); keyPassword System.getenv('TRAILBOUND_KEY_PASSWORD') }
+  }
+ }
+ buildTypes { release { minifyEnabled false; if (System.getenv('TRAILBOUND_KEYSTORE')) signingConfig signingConfigs.release } }
 }
 dependencies { implementation 'androidx.activity:activity:1.10.1'; androidTestImplementation 'androidx.test:runner:1.6.2'; androidTestImplementation 'androidx.test.ext:junit:1.2.1'; androidTestImplementation 'androidx.test:core:1.6.1'; implementation 'androidx.webkit:webkit:1.14.0'; testImplementation 'junit:junit:4.13.2' }

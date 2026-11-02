@@ -8,11 +8,11 @@ export function attachMapDiscovery(map,lib,{getCatalog,loadTrail,openDestination
   let pack=null,summaries=new Map(),metrics=new Map(),listMode='view',clusterItems=[],page=0,picking=false,shownAll=[];
   const bounds=()=>{const b=map.getBounds();return {west:b.getWest(),east:b.getEast(),south:b.getSouth(),north:b.getNorth()};};
   const visible=()=>{const b=bounds();return getCatalog().filter(r=>summaries.has(r.id)?overlaps(summaries.get(r.id),b):inBounds(r.lon,r.lat,b));};
-  function focusTrail(r){if(pack?.routes[r.id]){const b=new lib.LngLatBounds();pack.routes[r.id].forEach(p=>b.extend([p[1],p[0]]));map.fitBounds(b,{padding:45,maxZoom:15});}else map.flyTo({center:[r.lon,r.lat],zoom:12});}
+  function focusTrail(r){if(r.points||pack?.routes[r.id]){const b=new lib.LngLatBounds();(r.points?r.points.map(p=>[p.lat,p.lon]):pack.routes[r.id]).forEach(p=>b.extend([p[1],p[0]]));map.fitBounds(b,{padding:45,maxZoom:15});}else map.flyTo({center:[r.lon,r.lat],zoom:12});}
   function render(){
-    shownAll=listMode==='cluster'?clusterItems:visible();const query=el('map-trail-search').value.trim().toLowerCase();const center=map.getCenter();const matches=filterTrails(shownAll.map(r=>({...r,summary:metrics.get(r.id),offline:Boolean(pack?.routes[r.id])})),{query,maxKm:Number(el('map-distance-filter').value),maxHours:Number(el('map-time-filter').value),availability:el('map-availability-filter').value,order:el('map-sort').value,center:{lat:center.lat,lon:center.lng},favorites:getFavorites()});
+    shownAll=listMode==='cluster'?clusterItems:visible();const query=el('map-trail-search').value.trim().toLowerCase();const center=map.getCenter();const matches=filterTrails(shownAll.map(r=>({...r,summary:r.points?routeSummary(r.points):metrics.get(r.id),offline:Boolean(r.points||pack?.routes[r.id])})),{query,maxKm:Number(el('map-distance-filter').value),maxHours:Number(el('map-time-filter').value),availability:el('map-availability-filter').value,order:el('map-sort').value,center:{lat:center.lat,lon:center.lng},favorites:getFavorites()});
     page=Math.min(page,Math.max(0,Math.ceil(matches.length/20)-1));
-    el('map-results-heading').textContent=`${matches.length.toLocaleString()} hikes ${listMode==='cluster'?'in selected cluster':'in viewed area'}`;
+    el('map-results-heading').textContent=`${matches.length.toLocaleString()} routes & paths ${listMode==='cluster'?'in selected cluster':'in viewed area'}`;
     el('map-results-note').textContent=pack?'Time baseline: 4 km/h + breaks. Unknown ascent is not a low-ascent claim.':'Loading route previews. Pins show approximate route centres.';
     el('map-trail-results').replaceChildren();
     for(const r of matches.slice(page*20,page*20+20)){
@@ -25,7 +25,7 @@ export function attachMapDiscovery(map,lib,{getCatalog,loadTrail,openDestination
     if(!matches.length){const p=document.createElement('p');p.textContent='No indexed hikes here. Zoom out or choose All Canada. Coverage is incomplete.';el('map-trail-results').append(p);}
     el('map-list-prev').disabled=page===0;el('map-list-next').disabled=(page+1)*20>=matches.length;el('map-list-page').textContent=matches.length?`${page*20+1}–${Math.min((page+1)*20,matches.length)} of ${matches.length}`:'0 results';
   }
-  function refresh(){if(pack){const routes=visible();map.getSource('network-preview').setData(fc(map.getZoom()>=7?routes.slice(0,120).flatMap(r=>pack.routes[r.id]?previewGeometry(r.id,pack.routes[r.id]):[]):[]));}render();}
+  function refresh(){if(pack){const routes=visible();map.getSource('network-preview').setData(fc(map.getZoom()>=7?routes.slice(0,120).flatMap(r=>r.points?previewGeometry(r.id,r.points.map(p=>[p.lat,p.lon])):pack.routes[r.id]?previewGeometry(r.id,pack.routes[r.id]):[]):[]));}render();}
   map.addSource('network-preview',{type:'geojson',data:fc([])});
   map.addLayer({id:'network-halo',type:'line',source:'network-preview',paint:{'line-color':'#fff','line-width':5,'line-opacity':0.8}},'trail-clusters');
   map.addLayer({id:'network-lines',type:'line',source:'network-preview',paint:{'line-color':'#146c42','line-width':2.5}},'trail-clusters');
@@ -39,11 +39,11 @@ export function attachMapDiscovery(map,lib,{getCatalog,loadTrail,openDestination
   // as avoiding a dependency on downloaded glyph fonts for the numbers.
   const clusterMarkers=new Map();
   const destinationMarkers=new Map();
-  map.setLayoutProperty('cluster-count','visibility','none');
+  if(map.getLayer('cluster-count'))map.setLayoutProperty('cluster-count','visibility','none');
   function updateClusterButtons(){
     const visible=new Map(map.queryRenderedFeatures({layers:['trail-clusters']}).map(f=>[f.properties.cluster_id,f]));
     for(const [id,marker] of clusterMarkers)if(!visible.has(id)){marker.remove();clusterMarkers.delete(id);}
-    for(const [id,feature] of visible)if(!clusterMarkers.has(id)){const button=document.createElement('button');button.className='map-cluster-button';button.textContent=feature.properties.point_count_abbreviated;button.setAttribute('aria-label',`Show ${feature.properties.point_count} hikes in cluster`);button.onclick=e=>{e.stopPropagation();clusterClick({features:[feature]});};clusterMarkers.set(id,new lib.Marker({element:button}).setLngLat(feature.geometry.coordinates).addTo(map));}
+    for(const [id,feature] of visible)if(!clusterMarkers.has(id)){const button=document.createElement('button');button.className='map-cluster-button';button.textContent=feature.properties.point_count_abbreviated;button.setAttribute('aria-label',`Show ${feature.properties.point_count} routes and paths in cluster`);button.onclick=e=>{e.stopPropagation();clusterClick({features:[feature]});};clusterMarkers.set(id,new lib.Marker({element:button}).setLngLat(feature.geometry.coordinates).addTo(map));}
   }
   map.on('idle',updateClusterButtons);
   map.on('click',e=>{if(picking){picking=false;el('map-pick-destination').textContent='Choose destination on map';pickDestination({lat:e.lngLat.lat,lon:e.lngLat.lng});}});
