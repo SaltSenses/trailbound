@@ -1,5 +1,13 @@
 # Trailbound
 
+## Version 0.4: built-in offline route pack
+
+The app now bundles compressed geometry for **1,538 of its 1,541 indexed Canadian OSM routes**. The initial app installation/update downloads approximately **5.3 MB** for this pack; it expands to about 20 MB of JSON when a route is first loaded. These included routes can be selected for the first time while offline; users do not need to download each one individually. Three indexed relations lack usable direct route geometry and still require a provider or later data repair.
+
+Settings → Built-in offline trails confirms pack installation. Keep the app online until the pack and offline shell are installed. Browser cache eviction or clearing site data removes the installed pack; reopen online to reinstall. This pack contains route lines, not offline terrain/basemap tiles. It does not provide all trails in Canada or establish that the app has more trails than AllTrails.
+
+Maintenance: `node scripts/build-offline-pack.mjs` makes one country-wide data request and rebuilds `public/data/canada-routes.json.gz` and `offline-manifest.json`. Review the resulting counts, run tests, commit both artifacts and publish. Do not run repeated country-wide jobs against public Overpass servers. Dataset integrity tests decompress the actual shipped pack and validate all included catalog geometries. OSM data © OpenStreetMap contributors, ODbL 1.0; https://www.openstreetmap.org/copyright .
+
 ## Version 0.3: live 2D and 3D maps
 
 Open Live map to explore a real streamed vector basemap with clustered Canadian trail markers, saved route lines, a highlighted selected route, location and fullscreen controls. Load a catalog route, choose View on 2D / 3D map, then toggle 3D terrain. Elevation comes from Mapterhorn and the basemap from OpenFreeMap; MapLibre GL JS 5.6.2 is loaded on demand from jsDelivr. These public endpoints need no API key but have no guaranteed availability. Online viewing sends map-area tile requests to those providers. The location control asks for browser permission. Terrain has 1.2× vertical exaggeration.
