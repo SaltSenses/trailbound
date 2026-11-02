@@ -1,5 +1,21 @@
 # Trailbound
 
+## Version 0.5: destinations, map discovery and terrain-aware drafts
+
+The supplied Alberta CSV and KML were reconciled field by field. All **114** entries are included in `public/data/destinations.json`: **13 sourced coordinate pins** and **101 search/research entries without coordinates**. Access restrictions, coordinate confidence, approach references and overnight notes are retained. The claims in those files have not been independently reverified. Missing coordinates and missing source URLs remain missing. No place is given an invented pin. Built-in records are cached with the offline shell.
+
+Live map starts over Alberta and shows numbered hike clusters. Click a count to list **every indexed hike in the cluster**, including pagination; Show viewed area returns to viewport discovery. Route previews are drawn automatically from the installed pack at zoom 7+, up to 120 previews in a view. Preview geometry is simplified; open a hike for the exact saved geometry. The map catalog remains incomplete. Purple pins are destinations, blue pins are staging candidates.
+
+Destinations → Details & hike planning preserves the source notes and offers nearby indexed hikes, an optional online search for mapped parking/trailhead candidates and terrain-aware draft generation. Nearby distances are straight-line distances to route centres, not connecting hikes. Parking candidates explicitly tagged private/no-access are excluded; the remaining candidates are **not verified legal parking, open trailheads, or available spaces**. Lookups are cached on device. If providers are unavailable, Offline route endpoints to research can use the bundled geometry. These endpoints are explicitly not verified parking or trailheads and may be remote junctions or summits. Overpass providers may time out; the UI reports the failure and retains cached data.
+
+Add a personal destination by latitude/longitude, a coordinate-bearing map URL or a click on Live map. Text-only names, shortened links and unlocated research leads are not automatically geocoded. Personal pins are stored locally and included in backups; built-in records stay intact.
+
+Draft generation sends the chosen start/destination to BRouter using its published `hiking-beta` profile, which uses mapped ways and elevation costs. It does not synthesize safe cross-country paths from topography. Restricted/closed/patrol/staff/guided-only entries disable automatic routing. Disconnected or failed requests do not become straight lines. Routes snapping more than 250 m away from either chosen endpoint are rejected. Successful routes retain a DRAFT name and provenance, including start/end snapping gaps, and can be saved/exported offline. Access, hazards, route suitability and all unmapped final approaches still need verification.
+
+External services: https://github.com/abrensch/brouter and https://brouter.de/brouter/profiles2/ ; OpenStreetMap Overpass providers listed at https://wiki.openstreetmap.org/wiki/Overpass_API . No API key is required by these public endpoints; availability is not guaranteed. Automatic routing requires internet.
+
+Importer: `python scripts/import-destinations.py SOURCE.csv SOURCE.kml` checks every CSV field against KML ExtendedData before producing the JSON catalog. Do not bulk-geocode research leads or silently upgrade coordinate confidence.
+
 ## Version 0.4: built-in offline route pack
 
 The app now bundles compressed geometry for **1,538 of its 1,541 indexed Canadian OSM routes**. The initial app installation/update downloads approximately **5.3 MB** for this pack; it expands to about 20 MB of JSON when a route is first loaded. These included routes can be selected for the first time while offline; users do not need to download each one individually. Three indexed relations lack usable direct route geometry and still require a provider or later data repair.

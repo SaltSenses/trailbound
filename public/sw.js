@@ -1,5 +1,5 @@
-const CACHE='trailbound-v7';
-const ASSETS=['./','./index.html','./app.js','./core.js','./catalog.js','./map-view.js','./offline-pack.js','./data/canada-routes.json.gz','./data/offline-manifest.json','./data/canada.json','./style.css','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='trailbound-v12';
+const ASSETS=['./','./index.html','./app.js','./core.js','./catalog.js','./map-view.js','./map-discovery.js','./discovery.js','./destinations.js','./data/destinations.json','./offline-pack.js','./data/canada-routes.json.gz','./data/offline-manifest.json','./data/canada.json','./style.css','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS.map(url=>new Request(url,{cache:'reload'})))));});
 self.addEventListener('message',event=>{if(event.data?.type==='ACTIVATE_UPDATE')self.skipWaiting();});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('trailbound-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

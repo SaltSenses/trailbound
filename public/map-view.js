@@ -1,3 +1,4 @@
+import {attachMapDiscovery} from './map-discovery.js';
 // Live basemap rendering is isolated from local route storage and recording.
 const LIBRARY='https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.2/dist/';
 export function routeFeatures(routes){
@@ -18,8 +19,8 @@ function loadLibrary(){
   });
   return libraryPromise;
 }
-export function createTrailMap({loadTrail,beginRoute,onError}){
-  let map,lib,ready=false,opening,catalog=[],routes=[],selected=null,position,marker,terrain=false,terrainFailed=false;
+export function createTrailMap({loadTrail,beginRoute,onError,openDestination=()=>{},pickDestination=()=>{}}){
+  let map,lib,ready=false,opening,catalog=[],routes=[],selected=null,position,marker,terrain=false,terrainFailed=false,explorer=null,destinations=[],staging=[],pendingPlace=null;
   const el=id=>document.getElementById(id);
   const status=text=>{el('map-status').textContent=text;};
   const apply=()=>{if(!ready)return;map.getSource('catalog').setData(catalogFeatures(catalog));map.getSource('saved-routes').setData(routeFeatures(routes));map.getSource('selected-route').setData(routeFeatures(selected?[selected]:[]));};
@@ -31,7 +32,7 @@ export function createTrailMap({loadTrail,beginRoute,onError}){
     if(opening)return opening;
     opening=(async()=>{try{
       status('Loading interactive map…');lib=await loadLibrary();
-      map=new lib.Map({container:'terrain-map',style:'https://tiles.openfreemap.org/styles/bright',center:[-106,57],zoom:3,maxZoom:18,maxPitch:80,attributionControl:true});
+      map=new lib.Map({container:'terrain-map',style:'https://tiles.openfreemap.org/styles/bright',center:[-115.4,53.2],zoom:5.5,maxZoom:18,maxPitch:80,attributionControl:true});
       map.addControl(new lib.NavigationControl({visualizePitch:true}),'top-right');map.addControl(new lib.FullscreenControl(),'top-right');map.addControl(new lib.ScaleControl({unit:'metric'}));
       const locate=new lib.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true,showAccuracyCircle:true});map.addControl(locate,'top-right');
       map.on('load',()=>{
@@ -40,14 +41,12 @@ export function createTrailMap({loadTrail,beginRoute,onError}){
         const firstLabel=map.getStyle().layers.find(layer=>layer.type==='symbol')?.id;
         map.addLayer({id:'terrain-shade',type:'hillshade',source:'elevation-shade',layout:{visibility:'none'},paint:{'hillshade-exaggeration':0.45,'hillshade-shadow-color':'#4c5841','hillshade-highlight-color':'#fff6d9'}},firstLabel);
         map.addSource('catalog',{type:'geojson',data:catalogFeatures(catalog),cluster:true,clusterRadius:45,clusterMaxZoom:10});
-        map.addLayer({id:'trail-clusters',type:'circle',source:'catalog',filter:['has','point_count'],paint:{'circle-color':'#174f40','circle-radius':['step',['get','point_count'],18,30,23,100,29],'circle-stroke-color':'#fff9dc','circle-stroke-width':2}});
-        map.addLayer({id:'cluster-count',type:'symbol',source:'catalog',filter:['has','point_count'],layout:{'text-field':['get','point_count_abbreviated'],'text-size':12},paint:{'text-color':'#ffffff'}});
+        map.addLayer({id:'trail-clusters',type:'circle',source:'catalog',filter:['has','point_count'],paint:{'circle-color':'#174f40','circle-radius':['step',['get','point_count'],21,30,27,100,33],'circle-stroke-color':'#fff9dc','circle-stroke-width':3}});
+        map.addLayer({id:'cluster-count',type:'symbol',source:'catalog',filter:['has','point_count'],layout:{'text-field':['get','point_count_abbreviated'],'text-font':['Noto Sans Regular'],'text-size':14,'text-allow-overlap':true},paint:{'text-color':'#ffffff'}});
         map.addLayer({id:'trail-pins',type:'circle',source:'catalog',filter:['!', ['has','point_count']],paint:{'circle-color':'#bf6e31','circle-radius':7,'circle-stroke-color':'#fff','circle-stroke-width':2}});
         map.addSource('saved-routes',{type:'geojson',data:routeFeatures(routes)});map.addLayer({id:'saved-lines',type:'line',source:'saved-routes',paint:{'line-color':'#3e806b','line-width':3}});
         map.addSource('selected-route',{type:'geojson',data:routeFeatures(selected?[selected]:[])});map.addLayer({id:'selected-halo',type:'line',source:'selected-route',paint:{'line-color':'#fff9e6','line-width':9}});map.addLayer({id:'selected-line',type:'line',source:'selected-route',paint:{'line-color':'#ed6a26','line-width':5}});
-        ready=true;apply();status('2D map ready · select a trail marker or a saved route');el('map-2d').disabled=false;el('map-3d').disabled=false;el('map-fit').disabled=!selected;if(selected)fit();if(position)setPosition(position);
-        map.on('click','trail-clusters',async e=>{try{const feature=e.features[0],zoom=await map.getSource('catalog').getClusterExpansionZoom(feature.properties.cluster_id);map.easeTo({center:feature.geometry.coordinates,zoom});}catch(err){onError(err.message);}});
-        map.on('click','trail-pins',e=>{const feature=e.features[0],id=Number(feature.properties.id);const content=document.createElement('div'),title=document.createElement('strong'),note=document.createElement('p'),button=document.createElement('button');title.textContent=feature.properties.name;note.textContent='Marker shows approximate route centre. Load the route to see its actual path.';button.textContent='Load route';const popup=new lib.Popup().setLngLat(feature.geometry.coordinates).setDOMContent(content).addTo(map);button.onclick=()=>{popup.remove();loadTrail(id);};content.append(title,note,button);});
+        ready=true;apply();status('2D map ready · select a trail marker or a saved route');el('map-2d').disabled=false;el('map-3d').disabled=false;el('map-fit').disabled=!selected;if(selected)fit();if(position)setPosition(position);explorer=attachMapDiscovery(map,lib,{getCatalog:()=>catalog,loadTrail,openDestination,pickDestination});explorer.setDestinations(destinations);explorer.setStaging(staging);if(pendingPlace){explorer.focusPlace(pendingPlace);pendingPlace=null;}
         for(const layer of ['trail-clusters','trail-pins']){map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');}
         map.on('sourcedata',e=>{if(e.sourceId==='elevation'&&e.isSourceLoaded&&terrain){el('terrain-map').dataset.terrainLoaded='true';status('3D elevation loaded · drag to explore terrain · relief exaggerated 1.2×');}});
       });
@@ -59,5 +58,5 @@ export function createTrailMap({loadTrail,beginRoute,onError}){
   el('map-2d').onclick=()=>mode(false);el('map-3d').onclick=()=>mode(true);el('map-fit').onclick=fit;el('map-begin').onclick=()=>{if(selected)beginRoute(selected);};el('map-route-select').onchange=e=>selectRoute(routes.find(r=>r.id===e.target.value)||null);
   window.addEventListener('offline',()=>status('Offline: streamed basemap and 3D terrain may be unavailable. Open downloaded route geometry in Your library.'));
   window.addEventListener('online',()=>{if(map){map.triggerRepaint();status('Connection restored. Move or zoom the map to load tiles.');}});
-  return {open,setCatalog(data){catalog=data;apply();},setRoutes(data){routes=data;dropdown();apply();},selectRoute,setPosition};
+  return {open,setCatalog(data){catalog=data;apply();explorer?.refresh();},setRoutes(data){routes=data;dropdown();apply();},selectRoute,setPosition,setDestinations(data){destinations=data;explorer?.setDestinations(data);},setStaging(data){staging=data;explorer?.setStaging(data);},focusPlace(p,zoom=12){if(explorer)explorer.focusPlace(p,zoom);else{pendingPlace=p;open();}}};
 }
