@@ -1,5 +1,18 @@
 # Trailbound
 
+Live app: https://saltsenses.github.io/trailbound/
+
+## Version 0.2 additions
+
+A bundled Canada index currently contains 1,541 named OpenStreetMap hiking/foot/walking route relations. Search by route name/operator, filter approximate geographic areas, load geometry while online, save it offline and choose Begin hike. This is not all Canadian trails or an AllTrails catalog. Routes absent from OSM relations, unnamed routes, some nested relation geometry and current closures are not covered. Transboundary routes can extend outside Canada. Source data: public/data/canada.json, © OpenStreetMap contributors, ODbL 1.0. The catalog is cached offline; undownloaded route geometry requires the public Overpass service, which has no uptime guarantee.
+
+Refresh the bundled index with `node scripts/update-catalog.mjs`, review the result, run tests and commit/publish the changed dataset. It performs one country-level index request; avoid repeated bulk requests. Broader coverage needs additional licensed government/park datasets and deduplication.
+
+### Automatic app updates
+
+Every push to main runs tests and publishes via GitHub Pages. The workflow stamps the service-worker cache with the full commit SHA so each deployed version is detected without manual version edits. The online app checks on open, on reconnect, on return to the foreground and every 30 seconds while visible. A complete new offline shell must download before activation. It reloads automatically, except while a hike recording is active; then it waits until the hike is saved. Offline devices keep the last installed version until online. Deployment and CDN propagation take time, so changes cannot be instantaneous. Changes in unsaved form fields can be lost during an automatic refresh.
+
+
 An independent, installable hiking MVP for Windows/laptop and Android. Plain JavaScript modules, IndexedDB, a service worker and static hosting. No ChatGPT account, subscription, production API key or server database is required. The working title can be changed before launch.
 
 ## Run now on your laptop
@@ -70,7 +83,7 @@ Hosted HTTPS pages may be blocked from reaching a local HTTP server by browser p
 ## Update, maintain and recover
 
 - Run `npm test` and `npm run check` before every change. The Pages workflow runs both before deploying.
-- Commit changes, push to main, and confirm the Actions deployment succeeded. For changed offline assets, increment `CACHE` in `public/sw.js` (also update the cache name checked in `app.js`). Close **all** app tabs/windows, then reopen online so a waiting service worker can activate. Refresh once and verify Settings cache status.
+- Commit changes, push to main, and confirm the Actions deployment succeeded. The deployment workflow versions offline assets automatically. Keep the online app visible for up to 30 seconds after deployment; it will refresh once the new cache is ready. Active hike recordings defer refresh until finished.
 - Back up in Settings weekly and before updates. Keep an encrypted copy outside this device. Test restoring into a separate browser profile. Backups include location history; never commit them to GitHub.
 - Clearing browser data removes routes/plans. Request durable storage, but still maintain backups. There is no central database to recover your private records from.
 - Roll back with `git revert` and deploy the resulting commit. Preserve IndexedDB database version/schema during a rollback. Future database migrations need backup/restore verification.

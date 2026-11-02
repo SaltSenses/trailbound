@@ -1,0 +1,6 @@
+const query='[out:json][timeout:180];area["ISO3166-1"="CA"][admin_level=2]->.ca;rel(area.ca)[type=route][route~"^(hiking|foot|walking)$"];out tags center;';
+const response=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query),{headers:{'User-Agent':'Trailbound/0.2 (https://github.com/SaltSenses/trailbound)'},signal:AbortSignal.timeout(210000)});
+if(!response.ok)throw Error('Overpass '+response.status+' '+(await response.text()).slice(0,800));const data=await response.json();if(data.remark)throw Error(data.remark);const routes=data.elements.filter(e=>e.type==='relation'&&e.center&&e.tags?.name).map(e=>({id:e.id,name:e.tags['name:en']||e.tags.name,localName:e.tags.name,lat:e.center.lat,lon:e.center.lon,network:e.tags.network||'',operator:e.tags.operator||'',distance:e.tags.distance||'',website:e.tags.website||e.tags['contact:website']||''}));
+const {writeFile}=await import('node:fs/promises');await writeFile(new URL('../public/data/canada.json',import.meta.url),JSON.stringify({source:'OpenStreetMap contributors',license:'ODbL-1.0',fetchedAt:new Date().toISOString(),scope:'Named hiking, foot and walking route relations intersecting the OpenStreetMap Canada administrative area; not a complete inventory of all Canadian trails.',routes}));console.log(JSON.stringify({count:routes.length,bytes:JSON.stringify(routes).length}));
+
+
