@@ -1,0 +1,36 @@
+name: Publish verified Trailbound Live
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-live-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify successful build and exact APK
+        run: |
+          set -euo pipefail
+          gh run view 41570212834 --json conclusion,headSha --jq '(.conclusion == "success" and .headSha == "c8307eeafbb70dddf3bdc1a3c2c596eec039bc1c")' | grep -qx true
+          gh run download 41570212834 --name trailbound-android-preview --dir preview-artifact
+          mkdir -p preview-files
+          cp preview-artifact/outputs/apk/debug/app-debug.apk preview-files/trailbound-live-v0.9.0.apk
+          printf '%s  %s\n' 'e8d14e7af14ccf63fcceb9e954e5a495bb04931de7789360d67ae4687169fb4c' 'trailbound-live-v0.9.0.apk' > preview-files/SHA256SUMS
+          (cd preview-files && sha256sum -c SHA256SUMS)
+      - name: Publish frozen Live preview
+        run: |
+          set -euo pipefail
+          if gh release view v0.9.0-live > /dev/null 2>&1; then
+            mkdir -p existing-preview
+            gh release download v0.9.0-live --pattern trailbound-live-v0.9.0.apk --dir existing-preview
+            printf '%s  %s\n' 'e8d14e7af14ccf63fcceb9e954e5a495bb04931de7789360d67ae4687169fb4c' 'existing-preview/trailbound-live-v0.9.0.apk' | sha256sum -c -
+          else
+            gh release create v0.9.0-live preview-files/trailbound-live-v0.9.0.apk preview-files/SHA256SUMS --target c8307eeafbb70dddf3bdc1a3c2c596eec039bc1c --prerelease --title 'Trailbound Live 0.9.0 — automatic updates' --notes-file docs/android-live-preview.md
+          fi
