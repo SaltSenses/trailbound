@@ -16,8 +16,17 @@ public class BackgroundRecordingTest {
    boolean loaded=false;for(int i=0;i<60;i++){String count=evaluate(activity,"Number((document.getElementById('catalog-status')?.textContent||'').split(' ')[0].replace(/[^0-9]/g,''))");try{if(Integer.parseInt(count)>1541){loaded=true;break;}}catch(NumberFormatException ignored){}Thread.sleep(250);}assertTrue("Expanded catalog must load from APK assets without internet",loaded);assertEquals("true",evaluate(activity,"document.getElementById('native-recorder').hidden===false"));assertEquals("true",evaluate(activity,"document.getElementById('browser-recorder').hidden===true && document.getElementById('native-recorder').contains(document.getElementById('hike-name'))"));
   }finally{shell("svc wifi enable");shell("svc data enable");}
  }
+ @Test public void transCanadaSectionsAndFerriesWorkOffline()throws Exception {
+  Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();try(java.io.InputStream in=c.getAssets().open("data/trans-canada-trail.json")){org.json.JSONObject p=new org.json.JSONObject(new String(in.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8));assertTrue(p.getJSONArray("routes").length()>100);}
+  shell("svc wifi disable");shell("svc data disable");
+  try(ActivityScenario<MainActivity> activity=ActivityScenario.launch(MainActivity.class)){
+   boolean ready=false;for(int i=0;i<80;i++){if("true".equals(evaluate(activity,"Boolean(document.getElementById('browse-tct')&&!document.getElementById('browse-tct').disabled)"))){ready=true;break;}Thread.sleep(250);}assertTrue("Bundled TCT collection must load offline",ready);
+   evaluate(activity,"(()=>{document.querySelector('[data-tab=explore]').click();document.getElementById('browse-tct').click();document.getElementById('catalog-search').value='Port aux Basques';document.getElementById('catalog-search').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#catalog-results button').click();return true;})()");
+   boolean opened=false;for(int i=0;i<60;i++){if("true".equals(evaluate(activity,"Boolean(document.getElementById('detail').open&&document.getElementById('begin-route')?.disabled&&document.getElementById('plan-this')?.disabled)"))){opened=true;break;}Thread.sleep(250);}assertTrue("Ferry must open offline with hiking and walking-plan actions disabled",opened);
+  }finally{shell("svc wifi enable");shell("svc data enable");}
+ }
  @Test public void recordsToDiskWhileScreenIsOff()throws Exception {
-  Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();shell("pm grant ca.trailbound.app android.permission.ACCESS_FINE_LOCATION");shell("pm grant ca.trailbound.app android.permission.ACCESS_COARSE_LOCATION");shell("pm grant ca.trailbound.app android.permission.POST_NOTIFICATIONS");shell("appops set ca.trailbound.app android:mock_location allow");
+  Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();String appId=c.getPackageName();shell("pm grant "+appId+" android.permission.ACCESS_FINE_LOCATION");shell("pm grant "+appId+" android.permission.ACCESS_COARSE_LOCATION");shell("pm grant "+appId+" android.permission.POST_NOTIFICATIONS");shell("appops set "+appId+" android:mock_location allow");
   TrackDb db=new TrackDb(c);db.finish();LocationManager lm=(LocationManager)c.getSystemService(Context.LOCATION_SERVICE);
   try(ActivityScenario<MainActivity> activity=ActivityScenario.launch(MainActivity.class)){
    lm.addTestProvider(LocationManager.GPS_PROVIDER,false,false,false,false,true,true,true,Criteria.POWER_LOW,Criteria.ACCURACY_FINE);lm.setTestProviderEnabled(LocationManager.GPS_PROVIDER,true);

@@ -27,3 +27,8 @@ CI includes JVM tests and an Android emulator test that injects GPS fixes while 
 References: https://developer.android.com/develop/background-work/services/fgs/service-types#location and https://developer.android.com/develop/background-work/services/fgs/restrictions-bg-start .
 
 For your Google Pixel 8 Pro: install the APK, grant Precise location and notifications, start outside while the app is visible, and verify the persistent notification before locking the screen. If recording stops, inspect Settings → Apps → Trailbound → App battery usage and its background allowance. Names vary by Android version. Use a 30-minute screen-off walk followed by an airplane-mode repeat, then export and inspect sample times. Restore exported native JSON through Settings & backup to copy usable tracks into the library; native service state is never reactivated by an import.
+
+
+## Android 0.8 Trans Canada Trail preview
+
+This debug APK is named Trailbound Preview 0.8 and uses ca.trailbound.app.preview so it can be installed beside the older preview without uninstalling or erasing it. App data is separate. Export native tracks, library backups and regional packs from the older app and import copies if needed. The 243 TCT sections are packaged in the APK; no per-section network request is required. Android tests check offline TCT browsing and prevent beginning a ferry as a hike. Future APK updates still require a permanent signing identity you control.

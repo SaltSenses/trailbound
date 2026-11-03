@@ -1,6 +1,16 @@
 # Trailbound
 
-## Version 0.7: regional offline maps, expanded paths and Android recorder
+## Version 0.8: built-in Trans Canada Trail
+
+Live map → Trans Canada Trail focuses the community-mapped network and filters its section list. Explore routes → Browse Trans Canada Trail lists the built-in collection, with search and approximate province filters. The dataset currently has 243 direct-member sections reached through OSM relation 3060299, including 198 land, 6 water, 7 ferry and 32 explicitly foot-restricted sections. It is a roughly 2.1 MB compressed offline download bundled with the app, not a live-provider dependency when opening a section. It is not the official complete TCT database: this root snapshot does not represent Northwest Territories or Nunavut. Some names in the wider catalog identify additional TCT sections outside this hierarchy.
+
+Original source-member way boundaries remain separate GPX segments; the app does not stitch them into an assumed continuous hike. Water, ferry and foot-restricted sections can be viewed and exported but cannot be started as hikes or assigned walking-time plans. Land sections may include roads and are not verified for walking access, closures or suitability. The national blue network layer is a simplified preview; open a section for its saved full geometry. Offline route geometry does not imply a nationwide offline basemap. Attribution: © OpenStreetMap contributors, ODbL-1.0; source https://www.openstreetmap.org/relation/3060299 . TCT GPX exports retain source attribution and collection metadata survives backup/restore.
+
+Refresh with `node scripts/update-tct.mjs` or `node scripts/update-tct.mjs path/to/captured-network.json`. A provider error never replaces the pack with a partial response. The manifest reports missing/unsupported members. The included snapshot has no missing referenced geometry; one non-route relation is excluded. Public endpoints can be slow or unavailable.
+
+Android 0.8 debug builds use the separate application ID `ca.trailbound.app.preview` and display name **Trailbound Preview 0.8**, so testing this build does not require removing the earlier installed preview or deleting its tracks. Its app storage is separate: export/import tracks and regions to transfer them. Permanent release signing remains a separate setup step; no private signing keys are committed. This APK is not automatically installed by a web update.
+
+## Earlier version 0.7: regional offline maps, expanded paths and Android recorder
 
 Live map → Offline maps & expanded local trails downloads a bounded OSM vector region, or one of the ready-made Canadian packs, into IndexedDB. Each region adds real named path segments to discovery and can be exported/imported independently. The map renderer is bundled locally; the regional 2D basemap has roads, paths, streams, standalone water/land-cover polygons and buildings. It needs no streamed tiles, glyph fonts or sprites. Major multipolygons, terrain contours and offline 3D relief are not included. Tap mapped features to read their names. Offline mode and the last map view persist.
 
