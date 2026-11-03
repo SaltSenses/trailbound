@@ -1,3 +1,11 @@
+## Automatic updates (0.9.0)
+
+Install **Trailbound Live** (`ca.trailbound.app.live`) once to enable automatic web-content updates on Android. It installs separately from the earlier previews, keeping their data intact. Export native tracks and Settings backup from the old app, then import copies into Live. No uninstall is required.
+
+Live opens its working offline version immediately and checks the fixed GitHub Pages update feed on launch, foreground return and reconnection. A complete ZIP is bounded, SHA-256 verified and extracted into a new private directory before an atomic activation. Active native recording defers activation until Finish. App screens, features and bundled trail/region data then load from the downloaded release at the same appassets origin, preserving IndexedDB, local preferences and native SQLite tracks. A startup health check restores the previous version if new JavaScript cannot initialize. Offline/failed checks keep the working version. Settings → Check for updates now shows status and retries.
+
+Pages CI stamps a release, builds the ZIP plus `app-update.json`, and publishes them in the same deployment. Only published app/data changes update; this is not live trail-closure verification. Android Java, permissions and bridge changes still require a new signed APK. Permanent release signing remains to be configured. This preview is not Play Store distributed.
+
 # Trailbound
 
 ## Version 0.8: built-in Trans Canada Trail

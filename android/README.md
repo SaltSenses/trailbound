@@ -1,3 +1,7 @@
+## Trailbound Live 0.9.0
+
+Debug builds now use `ca.trailbound.app.live` (Trailbound Live), separate from earlier preview packages. Install once, retain the old apps and privately export/import backups to migrate copies. Subsequent compatible web features and bundled trail data update automatically from the fixed HTTPS Pages origin. Native code still needs an APK installation. The updater retains the working offline version, uses a complete hash-checked release, protects active recordings, bounds downloads/extraction, rejects unsafe archive paths, preserves the local origin and restores the previous release if startup fails. Settings shows update status. Do not publish private track exports or signing keys.
+
 # Trailbound Android
 
 The native app packages the web UI, local MapLibre renderer, Canadian relation geometry and ready-made regional packs. Its dedicated recorder uses Android LocationManager GPS updates in a location foreground service with an ongoing notification. Each accepted fix is immediately committed to SQLite with timestamp, accuracy and optional altitude. Stale fixes (>30 seconds), accuracy worse than 60 m and invalid coordinates are rejected. Service restarts and long gaps are marked as separate track segments. Closing the activity does not stop the service. Force-stop, reboot, revoked permissions and some manufacturer battery controls can stop it; reopen and use Resume interrupted service. No boot receiver or silent permission expansion is used.

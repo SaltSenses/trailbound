@@ -7,3 +7,6 @@ android/**/build/
 android/local.properties
 *.jks
 *.keystore
+public/release.json
+public/app-update.json
+public/updates/

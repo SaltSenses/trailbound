@@ -2,7 +2,8 @@ plugins { id 'com.android.application' }
 android {
  namespace 'ca.trailbound.app'
  compileSdk 36
- defaultConfig { applicationId 'ca.trailbound.app'; minSdk 26; targetSdk 36; versionCode 9; versionName '0.8.0'; testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'; resValue 'string', 'app_name', 'Trailbound' }
+ buildFeatures { buildConfig true }
+ defaultConfig { applicationId 'ca.trailbound.app'; minSdk 26; targetSdk 36; versionCode 10; versionName '0.9.0'; testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'; resValue 'string', 'app_name', 'Trailbound' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
  sourceSets { main { assets.srcDirs = ['../../public'] } }
  signingConfigs {
@@ -11,6 +12,6 @@ android {
    if (keyPath) { storeFile file(keyPath); storePassword System.getenv('TRAILBOUND_STORE_PASSWORD'); keyAlias System.getenv('TRAILBOUND_KEY_ALIAS'); keyPassword System.getenv('TRAILBOUND_KEY_PASSWORD') }
   }
  }
- buildTypes { debug { applicationIdSuffix '.preview'; resValue 'string', 'app_name', 'Trailbound Preview 0.8' }; release { minifyEnabled false; if (System.getenv('TRAILBOUND_KEYSTORE')) signingConfig signingConfigs.release } }
+ buildTypes { debug { applicationIdSuffix '.live'; resValue 'string', 'app_name', 'Trailbound Live' }; release { minifyEnabled false; if (System.getenv('TRAILBOUND_KEYSTORE')) signingConfig signingConfigs.release } }
 }
 dependencies { implementation 'androidx.activity:activity:1.10.1'; androidTestImplementation 'androidx.test:runner:1.6.2'; androidTestImplementation 'androidx.test.ext:junit:1.2.1'; androidTestImplementation 'androidx.test:core:1.6.1'; implementation 'androidx.webkit:webkit:1.14.0'; testImplementation 'junit:junit:4.13.2' }
