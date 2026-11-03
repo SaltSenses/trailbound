@@ -1,0 +1,36 @@
+name: Publish verified Trans Canada Android preview
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-tct-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify successful build and exact APK
+        run: |
+          set -euo pipefail
+          gh run view 41554601102 --json conclusion,headSha --jq '(.conclusion == "success" and .headSha == "9d120897c8fed1d11f5d7fd7421f4355ac51137e")' | grep -qx true
+          gh run download 41554601102 --name trailbound-android-preview --dir preview-artifact
+          mkdir -p preview-files
+          cp preview-artifact/outputs/apk/debug/app-debug.apk preview-files/trailbound-android-v0.8.0-tct-preview.apk
+          printf '%s  %s\n' 'a6d8ba6c4a6f4316435d49b4e5465660f2dc21458fea0423d4702e552ce0992b' 'trailbound-android-v0.8.0-tct-preview.apk' > preview-files/SHA256SUMS
+          (cd preview-files && sha256sum -c SHA256SUMS)
+      - name: Publish frozen Trans Canada preview
+        run: |
+          set -euo pipefail
+          if gh release view v0.8.0-preview > /dev/null 2>&1; then
+            mkdir -p existing-preview
+            gh release download v0.8.0-preview --pattern trailbound-android-v0.8.0-tct-preview.apk --dir existing-preview
+            printf '%s  %s\n' 'a6d8ba6c4a6f4316435d49b4e5465660f2dc21458fea0423d4702e552ce0992b' 'existing-preview/trailbound-android-v0.8.0-tct-preview.apk' | sha256sum -c -
+          else
+            gh release create v0.8.0-preview preview-files/trailbound-android-v0.8.0-tct-preview.apk preview-files/SHA256SUMS --target 9d120897c8fed1d11f5d7fd7421f4355ac51137e --prerelease --title 'Trailbound Android 0.8.0 — Trans Canada Trail' --notes-file docs/android-tct-preview.md
+          fi
